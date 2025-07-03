@@ -1,43 +1,47 @@
 #include <xtensor/containers/xarray.hpp>
 #include <xtensor/containers/xtensor.hpp>
-#include <xtensor/io/xio.hpp>
 #include <xtensor/generators/xrandom.hpp>
+#include <xtensor/io/xio.hpp>
+#include <xtensor/io/xnpy.hpp>
 
 #include <chrono>
 #include <expected>
+#include <fstream>
 
 import mind;
 using namespace std::chrono_literals;
 
-
-
 int main() {
-  constexpr std::size_t neurons = 10*10;
+  constexpr std::size_t neurons = 10 * 10;
   std::default_random_engine rng{std::random_device{}()};
 
-
-  MindData mind{
-    .tick = 0,
-    .activation_thresholds = xt::random::rand<float>({neurons}, 0,1,rng),
-    .outputs_weights = [&rng] {
-      xt::xtensor<float, 2> arr = xt::random::rand<float>({neurons, neurons}, 0, 1, rng);
-      for (std::size_t neuron_idx = 0; neuron_idx < neurons; ++neuron_idx) {
-        arr(neuron_idx, neuron_idx) = 0.0f;
-      }
-      return arr;
-    }(),
-    .input_weights = [&rng] {
-      xt::xtensor<float, 2> arr = xt::random::rand<float>({neurons, neurons}, 0, 1, rng);
-      for (std::size_t neuron_idx = 0; neuron_idx < neurons; ++neuron_idx) {
-        arr(neuron_idx, neuron_idx) = 0.0f;
-      }
-      return arr;
-    }(),
-    .reactivation_delays = xt::random::rand<float>({neurons}, 0,10,rng),
-    .next_activations = xt::zeros<float>({neurons}),
-    .signal_map = xt::random::rand<float>({neurons}, 0,1,rng),
-    .neural_activity = xt::zeros<float>({neurons})
-  };
+  mind::MindData mind{
+      .tick = 0,
+      .activation_thresholds = xt::random::rand<float>({neurons}, 0, 1, rng),
+      .outputs_weights =
+          [&rng] {
+            xt::xtensor<float, 2> arr =
+                xt::random::rand<float>({neurons, neurons}, 0, 1, rng);
+            for (std::size_t neuron_idx = 0; neuron_idx < neurons;
+                 ++neuron_idx) {
+              arr(neuron_idx, neuron_idx) = 0.0f;
+            }
+            return arr;
+          }(),
+      .input_weights =
+          [&rng] {
+            xt::xtensor<float, 2> arr =
+                xt::random::rand<float>({neurons, neurons}, 0, 1, rng);
+            for (std::size_t neuron_idx = 0; neuron_idx < neurons;
+                 ++neuron_idx) {
+              arr(neuron_idx, neuron_idx) = 0.0f;
+            }
+            return arr;
+          }(),
+      .reactivation_delays = xt::random::rand<float>({neurons}, 0, 10, rng),
+      .next_activations = xt::zeros<float>({neurons}),
+      .signal_map = xt::random::rand<float>({neurons}, 0, 1, rng),
+      .neural_activity = xt::zeros<float>({neurons})};
 
   mind_validate(mind).or_else(
       [](const auto &err) -> std::expected<void, std::string> {

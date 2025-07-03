@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.0.2)
 
-project(nand-vm LANGUAGES CXX)
+project(nn-experiments LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_CXX_STANDARD 26)
@@ -79,3 +79,16 @@ CPMAddPackage(
   "XTENSOR_USE_TBB OFF"
 )
 target_link_libraries(main PRIVATE xtensor)
+
+CPMAddPackage(
+  NAME nlohmann_json
+  URL https://github.com/nlohmann/json/archive/refs/tags/v3.12.0.tar.gz
+  URL_HASH SHA256=4b92eb0c06d10683f7447ce9406cb97cd4b453be18d7279320f7b2f025c10187
+  SYSTEM ON
+  EXCLUDE_FROM_ALL ON
+)
+target_link_libraries(main PRIVATE nlohmann_json::nlohmann_json)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(zstd REQUIRED IMPORTED_TARGET libzstd=1.5.6) # tested only with 1.5.6
+target_link_libraries(main PRIVATE PkgConfig::zstd)
