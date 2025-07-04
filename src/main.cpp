@@ -1,4 +1,3 @@
-#include <xtensor/containers/xarray.hpp>
 #include <xtensor/containers/xtensor.hpp>
 #include <xtensor/generators/xrandom.hpp>
 #include <xtensor/io/xio.hpp>
@@ -6,10 +5,9 @@
 
 #include <chrono>
 #include <expected>
-#include <fstream>
-
 import mind;
 using namespace std::chrono_literals;
+
 
 int main() {
   constexpr std::size_t neurons = 10 * 10;

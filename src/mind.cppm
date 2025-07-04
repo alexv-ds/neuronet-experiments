@@ -160,14 +160,19 @@ export std::expected<void, std::string> mind_validate(const MindData &mind) {
  * @brief Executes a single update step of the neural network represented by MindData.
  *
  * This function simulates one time tick (`mind.tick`) of the neural activity by:
- * - Computing incoming signals to each neuron based on input weights and signal map.
- * - Applying an activation function using thresholds and reactivation delays.
- * - Propagating outputs to update the signal map using output weights.
+ * - Incrementing the global tick counter and resetting it when reaching a maximum (`max_tick = 1024`).
+ *   When the tick resets, all `next_activations` values are decreased by the tick amount to maintain correct timing.
+ * - Computing incoming signals to each neuron based on input weights and the current `signal_map`.
+ * - Applying an activation function that compares neuron activity against thresholds.
+ *   When a neuron activates, its next activation time is delayed by the maximum of its reactivation delay and `max_tick`,
+ *   ensuring a minimal delay threshold.
+ * - Propagating outputs through output weights to update the `signal_map`.
  *
  * The process includes three main phases:
- * 1. **Signal accumulation**: Neurons that are ready (`next_activations <= tick`) receive weighted input signals.
- * 2. **Activation decision**: Neurons whose activity exceeds the threshold become active and get delayed for the next activation.
- * 3. **Signal propagation**: Active neurons propagate their signal through the output weights.
+ * 1. **Tick management**: Increment the tick, reset to zero upon reaching `max_tick`, adjusting `next_activations` accordingly.
+ * 2. **Signal accumulation**: Neurons ready to activate (`next_activations <= tick`) sum weighted inputs from the signal map.
+ * 3. **Activation decision**: Neurons exceeding their activation threshold update `next_activations` with a delay ensuring at least `max_tick`.
+ * 4. **Signal propagation**: Active neurons propagate their signals using output weights to update the signal map.
  *
  * This function modifies `neural_activity`, `next_activations`, and `signal_map` in-place.
  *
@@ -177,8 +182,22 @@ export std::expected<void, std::string> mind_validate(const MindData &mind) {
  * @see MindData
  */
 export void mind_step(MindData &mind) {
+  ++mind.tick;
+  constexpr std::int32_t max_tick = 1024;
+
+  const auto neurons_count =
+      static_cast<std::ptrdiff_t>(mind.neural_activity.size());
+
+  // calc ticks
+  if (mind.tick >= max_tick) {
+    const auto tick = static_cast<float>(mind.tick);
+    for (std::ptrdiff_t i = 0; i < neurons_count; ++i) {
+      mind.next_activations(i) -= tick;
+    }
+    mind.tick = 0;
+  }
+
   const auto tick = static_cast<float>(mind.tick);
-  const std::ptrdiff_t neurons_count = mind.neural_activity.size();
 
   // calculate signals received by each neuron
   for (std::ptrdiff_t i = 0; i < neurons_count; ++i) {
@@ -193,11 +212,13 @@ export void mind_step(MindData &mind) {
   // apply activation function
   for (std::ptrdiff_t i = 0; i < neurons_count; ++i) {
     if (mind.neural_activity(i) > mind.activation_thresholds(i)) {
-      mind.next_activations(i) = tick + mind.reactivation_delays(i);
+      mind.next_activations(i) = tick + std::max(mind.reactivation_delays(i),
+                                                 static_cast<float>(max_tick));
     } else {
       mind.neural_activity(i) = 0.0f;
     }
   }
+
 
   // propagate signals using outputs_weights and store results in signal_map
   for (std::ptrdiff_t i = 0; i < neurons_count; ++i) {

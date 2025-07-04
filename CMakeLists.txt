@@ -27,8 +27,8 @@ add_compile_options(-march=native)
 add_executable(main src/main.cpp)
 
 target_sources(main PRIVATE FILE_SET CXX_MODULES FILES
-  src/lib/lib.non_copyable.cppm
   src/mind.cppm
+  src/agent.cppm
 )
 
 find_package(OpenMP REQUIRED)
@@ -92,3 +92,30 @@ target_link_libraries(main PRIVATE nlohmann_json::nlohmann_json)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(zstd REQUIRED IMPORTED_TARGET libzstd=1.5.6) # tested only with 1.5.6
 target_link_libraries(main PRIVATE PkgConfig::zstd)
+
+list(APPEND BOOST_LIBS
+  core
+  compute
+)
+string(JOIN "\\\;" BOOST_LIBS ${BOOST_LIBS})
+
+CPMAddPackage(
+  NAME Boost
+  VERSION 1.88.0
+  URL https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-cmake.tar.xz
+  URL_HASH SHA256=f48b48390380cfb94a629872346e3a81370dc498896f16019ade727ab72eb1ec
+  SYSTEM ON
+  EXCLUDE_FROM_ALL ON
+  OPTIONS
+  "BOOST_ENABLE_CMAKE ON"
+  "BOOST_SKIP_INSTALL_RULES ON"
+  "BUILD_SHARED_LIBS OFF"
+  "BOOST_INCLUDE_LIBRARIES ${BOOST_LIBS}"
+)
+target_link_libraries(main PRIVATE
+  Boost::core
+  Boost::compute
+)
+
+find_package(OpenCL 3.0.0 REQUIRED)
+target_link_libraries(main PRIVATE OpenCL::OpenCL)
