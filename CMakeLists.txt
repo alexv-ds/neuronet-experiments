@@ -29,6 +29,7 @@ add_executable(main src/main.cpp)
 target_sources(main PRIVATE FILE_SET CXX_MODULES FILES
   src/mind.cppm
   src/agent.cppm
+  src/lib/lib.random.cppm
 )
 
 find_package(OpenMP REQUIRED)
