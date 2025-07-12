@@ -90,10 +90,6 @@ CPMAddPackage(
 )
 target_link_libraries(main PRIVATE nlohmann_json::nlohmann_json)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(zstd REQUIRED IMPORTED_TARGET libzstd=1.5.6) # tested only with 1.5.6
-target_link_libraries(main PRIVATE PkgConfig::zstd)
-
 list(APPEND BOOST_LIBS
   core
   compute

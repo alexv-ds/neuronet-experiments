@@ -37,11 +37,12 @@ Agent::Agent(const std::size_t neurons) {
   mind_.neural_activity = xt::zeros<float>({neurons});
   validate();
 }
-void Agent::set_command(const std::string& command) {
-  for (const char& c=[]
-  }
-  command_ = command;
-}
+
+// void Agent::set_command(const std::string& command) {
+//   for (const char& c=[]
+//   }
+//   command_ = command;
+// }
 
 void Agent::energize_neuron(const std::size_t index, const float value) {
   if (index >= mind_.signal_map.size()) {

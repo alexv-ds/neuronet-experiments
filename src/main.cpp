@@ -10,7 +10,7 @@ using namespace std::chrono_literals;
 
 
 int main() {
-  constexpr std::size_t neurons = 10 * 10;
+  constexpr std::size_t neurons = 100 * 100;
   std::default_random_engine rng{std::random_device{}()};
 
   mind::MindData mind{
@@ -41,6 +41,10 @@ int main() {
       .signal_map = xt::random::rand<float>({neurons}, 0, 1, rng),
       .neural_activity = xt::zeros<float>({neurons})};
 
+  const auto data = mind_serialize(mind);
+  std::println("{} MB", data.size() / 1024 / 1024);
+
+  return 0;
   mind_validate(mind).or_else(
       [](const auto &err) -> std::expected<void, std::string> {
         throw std::invalid_argument{err};
